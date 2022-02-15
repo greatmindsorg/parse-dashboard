@@ -12,39 +12,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set Vars
-        id: vars
-        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
 
-      - run: echo "${{ steps.vars.outputs.tag }}"
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node-version }}
+          registry-url: https://nexus.greatminds.dev/repository/npm/
 
-      # - uses: actions/setup-node@v2
-      #   with:
-      #     node-version: ${{ env.node-version }}
-      #     registry-url: https://nexus.greatminds.dev/repository/npm/
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ env.NODE_VERSION }}-
 
-      # - uses: actions/cache@v2
-      #   with:
-      #     path: ~/.npm
-      #     key: ${{ runner.os }}-node-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-node-${{ env.NODE_VERSION }}-
+      - name: Install NPM Dependencies
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # - name: Install NPM Dependencies
-      #   run: npm ci
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Build Project
+        run: npm run prepare && npm run build
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # - name: Build Project
-      #   run: npm run prepare && npm run build
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      # - name: Setup Publication Repository
-      #   uses: actions/setup-node@v2
-      #   with:
-      #     node-version: ${{ env.node-version }}
-      #     registry-url: https://nexus.greatminds.dev/repository/npm-private/
+      - name: Setup Publication Repository
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node-version }}
+          registry-url: https://nexus.greatminds.dev/repository/npm-private/
 
       # - name: Publish Package
       #   run: npm run publish
