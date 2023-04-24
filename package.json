@@ -115,7 +115,7 @@
     "svg-prep": "1.0.4",
     "webpack": "5.64.4",
     "webpack-cli": "4.9.1",
-    "yaml": "1.10.0"
+    "yaml": "2.2.2"
   },
   "scripts": {
     "ci:check": "node ./ci/ciCheck.js",
